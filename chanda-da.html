@@ -1,0 +1,567 @@
+<html lang="bn">
+ <head> 
+  <meta charset="UTF-8"> 
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"> 
+  <title>চাঁদা দে!: মজার গেম Make by Hasib Hossen</title> 
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&amp;display=swap" rel="stylesheet"> 
+  <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Hind Siliguri', sans-serif; user-select: none; -webkit-tap-highlight-color: transparent; touch-action: none; }
+        body { background: #000; height: 100vh; width: 100vw; overflow: hidden; display: flex; justify-content: center; align-items: center; }
+
+        #game-wrapper {
+            position: relative; width: 100%; height: 100%; max-width: 500px;
+            background: linear-gradient(to bottom, #3498db, #8e44ad);
+            overflow: hidden; box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+
+        #hud-panel { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 15px; z-index: 100; }
+        .hud-box { background: #fff; padding: 5px 20px; border-radius: 50px; font-weight: bold; font-size: 18px; color: #333; border: 2px solid #2980b9; display: flex; align-items: center; gap: 5px; }
+
+        #player { position: absolute; left: 15%; top: 50%; width: 50px; height: 50px; z-index: 60; }
+        .player-img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 3px solid #fff; box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
+
+        .wall { position: absolute; width: 60px; background: #2c3e50; border: 2px solid #fff; z-index: 10; border-radius: 6px; display: flex; justify-content: center; }
+        .wall-cap { position: absolute; width: 70px; height: 45px; background: #fff; border: 3px solid #c0392b; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 28px; z-index: 11; }
+        .wall-top .wall-cap { bottom: -20px; } .wall-bottom .wall-cap { top: -20px; }
+
+        .game-item { position: absolute; z-index: 20; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 90px; }
+        
+        .trap-visual { width: 60px; height: 60px; background: #fff; border: 3px solid red; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; animation: spin 1s linear infinite; box-shadow: 0 0 10px red; margin-bottom: 2px; }
+        .trap-label-box { background: #c0392b; color: white; padding: 2px 6px; border-radius: 8px; font-size: 10px; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 3px; white-space: nowrap; border: 1px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3); margin-top: -5px; z-index: 25; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        .stand-visual { background: #ecf0f1; border: 2px solid #2c3e50; border-radius: 5px; padding: 2px; text-align: center; width: 85px; position: relative; box-shadow: 0 5px 10px rgba(0,0,0,0.3); }
+        .stand-roof { position: absolute; top: -8px; left: -2px; width: 105%; height: 10px; background: #e74c3c; border-radius: 3px; }
+        .icon-large { font-size: 32px; display: block; margin-top: 5px; }
+        .label-tag { background: #f1c40f; color: black; font-size: 10px; font-weight: bold; padding: 1px 4px; border-radius: 3px; display: inline-block; white-space: nowrap; }
+        .person-visual { background: white; border-radius: 50%; width: 65px; height: 65px; border: 3px solid #fff; box-shadow: 0 4px 8px rgba(0,0,0,0.2); display: flex; flex-direction: column; align-items: center; justify-content: center; }
+
+        #temp-msg { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(192, 57, 43, 0.95); color: #fff; padding: 20px; border-radius: 15px; font-size: 24px; font-weight: bold; border: 4px solid #fff; text-align: center; width: 80%; z-index: 300; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+
+        #game-over-modal { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 200; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 40px; text-align: center; color: white; }
+        .headline { font-size: 22px; font-weight: bold; color: #f1c40f; margin-bottom: 5px; text-shadow: 2px 2px 0 #000; padding: 0 10px; line-height: 1.3; display: none; }
+        .dialogue { background: #fff; color: #333; padding: 8px; border-radius: 8px; border: 3px solid #c0392b; font-size: 16px; margin: 5px; max-width: 90%; }
+        
+        .stats-box { background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 10px; padding: 10px; margin: 5px 0; width: 85%; font-size: 16px; }
+        .stat-row { display: flex; justify-content: space-between; margin-bottom: 4px; border-bottom: 1px dashed rgba(255,255,255,0.2); padding-bottom: 2px; }
+        .stat-val { font-weight: bold; color: #f1c40f; }
+
+        .btn-container { display: flex; flex-direction: column; gap: 8px; width: 80%; margin-top: 8px; }
+        .btn { border: none; padding: 10px 20px; font-size: 16px; color: white; border-radius: 50px; cursor: pointer; font-weight: bold; width: 100%; transition: transform 0.1s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn:active { transform: scale(0.95); }
+        .btn-play { background: #e74c3c; box-shadow: 0 3px 0 #c0392b; }
+        .btn-revive { background: #27ae60; color: white; box-shadow: 0 3px 0 #219150; }
+        .btn-share { background: #3498db; box-shadow: 0 3px 0 #2980b9; }
+
+        .pop { position: absolute; font-weight: 900; font-size: 20px; animation: floatUp 0.8s forwards; z-index: 150; white-space: nowrap; pointer-events: none; }
+        .pop-money { color: #f1c40f; text-shadow: 1px 1px 0 #000; }
+        .pop-dialog { color: #fff; background: #27ae60; padding: 2px 6px; border-radius: 5px; font-size: 14px; border: 1px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
+
+        #trap-meme-img { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); width: 160px; border-radius: 10px; border: 2px solid #fff; display: none; box-shadow: 0 0 15px rgba(255,255,255,0.2); }
+
+        /* --- নতুন ওয়েলকাম স্ক্রিন --- */
+        #welcome-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #c0392b, #8e44ad);
+            z-index: 500; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; color: white; text-align: center;
+        }
+        .welcome-title { font-size: 28px; font-weight: bold; margin-bottom: 20px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
+        .welcome-icon { font-size: 60px; margin-bottom: 20px; animation: bounce 2s infinite; }
+        .welcome-btn { 
+            background: #f1c40f; color: #333; padding: 15px 40px; 
+            border-radius: 50px; font-size: 20px; font-weight: bold; border: none; 
+            box-shadow: 0 5px 0 #f39c12; cursor: pointer; animation: pulse 1.5s infinite; 
+        }
+        .rules-box {
+            background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; margin-top: 30px; width: 80%; font-size: 14px; line-height: 1.6;
+        }
+        
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        @keyframes floatUp { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-50px) scale(1.1); opacity: 0; } }
+
+        #start-msg { position: absolute; top: 40%; width: 100%; text-align: center; color: #fff; font-size: 24px; font-weight: bold; animation: blink 1s infinite; z-index: 150; pointer-events: none; display: none; }
+        @keyframes blink { 50% { opacity: 0.5; } }
+        #revive-info { font-size: 14px; font-weight: normal; opacity: 0.9; }
+    </style> 
+ </head> 
+ <body> 
+  <div id="game-wrapper"> 
+   <div id="welcome-screen"> 
+    <div class="welcome-icon">
+     🇧🇩
+    </div> 
+    <div class="welcome-title">
+     "চাঁদাবাজকে আজি
+     <br>রুখে দিন"
+    </div> 
+    <button class="welcome-btn" onclick="startGameFlow()">খেলা শুরু করুন</button> 
+    <div class="rules-box">
+      📝 
+     <b>নিয়মাবলী:</b>
+     <br> ১. স্ক্রিনে ট্যাপ করে উড়ুন।
+     <br> ২. টাকা বা চাঁদা কালেক্ট করুন।
+     <br> ৩. পুলিশ (👮‍♂️) ও দাঁড়িপাল্লা (⚖️) থেকে চাঁদাবাজরা এড়িয়ে চলুন। 
+    </div> 
+   </div> 
+   <div id="hud-panel"> 
+    <div class="hud-box">
+     💰 
+     <span id="score">০</span>
+    </div> 
+    <div class="hud-box">
+     👤 
+     <span id="victims">০</span>
+    </div> 
+   </div> 
+   <div id="start-msg">
+    👆 ট্যাপ করে চাঁদা তুলুন 
+   </div> 
+   <div id="player"> 
+    <img src="https://i.ibb.co.com/r2YpYgVJ/IMG-20260110-223605.png" alt="Player" class="player-img"> 
+   </div> 
+   <div id="temp-msg">
+    আপনি ধরা খেয়ে গিয়েছেন 😁
+   </div> 
+   <div id="game-over-modal"> 
+    <div class="headline" id="modal-headline">
+     "যত লাগে ঘুষ নিন তবুও চাঁদা তুলতে দিন"
+    </div> 
+    <div style="font-size: 35px; margin: 0;" id="modal-icon">
+     ⚖️
+    </div> 
+    <div class="dialogue" id="modal-text"></div> 
+    <div class="stats-box"> 
+     <div class="stat-row">
+      <span>💰 মোট কালেকশন:</span>
+      <span class="stat-val" id="final-money">0</span>
+     </div> 
+     <div class="stat-row">
+      <span>👤 মোট জন:</span>
+      <span class="stat-val" id="final-victims">0</span>
+     </div> 
+     <div class="stat-row" style="border-bottom: none;">
+      <span>💸 মোট ঘুষ:</span>
+      <span class="stat-val" id="final-bribes" style="color: #e74c3c;">0</span>
+     </div> 
+    </div> 
+    <div class="btn-container"> 
+     <button class="btn btn-revive" id="reviveBtn" style="display:none;"><span>💸 ঘুষ দিয়ে আবার খেলুন</span><span id="revive-info">(১০০০)</span></button> 
+     <button class="btn btn-play" id="retryBtn">🔄 নতুন করে খেলুন</button> 
+     <button class="btn btn-share" onclick="shareGame()">🔗 শেয়ার করুন</button> 
+    </div> 
+    <img id="trap-meme-img" src="https://i.ibb.co.com/G4HzD1Nf/images-1-17-removebg-preview.png" alt="Trap Meme"> 
+   </div> 
+  </div> 
+  <script>
+        const bgMusic = new Audio('bg_music.mp3');         
+        const collectSound = new Audio('collect.mp3'); 
+        const crashSound = new Audio('crash.mp3');         
+        const policeOverMusic = new Audio('police_over.mp3'); 
+        const trapOverMusic = new Audio('trap_over.mp3');     
+
+        bgMusic.loop = true;
+        
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const audioCtx = new AudioContext();
+    </script> 
+  <script>
+        const gameWrapper = document.getElementById('game-wrapper');
+        const player = document.getElementById('player');
+        const scoreEl = document.getElementById('score');
+        const victimsEl = document.getElementById('victims');
+        const gameOverModal = document.getElementById('game-over-modal');
+        const tempMsg = document.getElementById('temp-msg');
+        const startMsg = document.getElementById('start-msg');
+        const retryBtn = document.getElementById('retryBtn');
+        const reviveBtn = document.getElementById('reviveBtn');
+        const modalHeadline = document.getElementById('modal-headline');
+        const modalIcon = document.getElementById('modal-icon');
+        const modalText = document.getElementById('modal-text');
+        const trapMemeImg = document.getElementById('trap-meme-img');
+        const welcomeScreen = document.getElementById('welcome-screen');
+
+        let gameActive = false;
+        let isGameOver = false;
+        let money = 0;
+        let peopleCount = 0;
+        let totalBribes = 0;
+        let frames = 0;
+        let animationFrameId;
+        let obstacles = [];
+        let crashedObject = null;
+        let playerY = gameWrapper.clientHeight / 2;
+        let velocity = 0;
+        const gravity = 0.28; 
+        const lift = -6.0;    
+        let gameSpeed = 3.0;
+        let gapSize = 250;
+        let spawnDistance = 450;
+        let spawnTimer = 0;
+        let trapChance = 0.3;
+        const REVIVE_COST = 1000; 
+
+        // ওয়েলকাম স্ক্রিন থেকে গেম শুরু
+        function startGameFlow() {
+            welcomeScreen.style.display = 'none';
+            startMsg.style.display = 'block';
+            
+            // সাউন্ড আনলক
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            bgMusic.play().catch(()=>{});
+        }
+
+        const items = [
+            { type: 'stand', name: 'বাস স্ট্যান্ড', icon: '🚌', val: 500 },
+            { type: 'stand', name: 'টেম্পু স্ট্যান্ড', icon: '🛺', val: 300 },
+            { type: 'person', name: 'রিক্সা চালক', icon: '🚲', val: 20 },
+            { type: 'person', name: 'ব্যবসায়ী', icon: '🤵', val: 200 },
+            { type: 'person', name: 'সবজিওয়ালা', icon: '🥦', val: 50 },
+            { type: 'person', name: 'চাকরিজীবী', icon: '👨‍💼', val: 100 }
+        ];
+
+        function playTapSound() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.1);
+        }
+
+        function playDangerSound() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sawtooth'; 
+            osc.frequency.setValueAtTime(150, audioCtx.currentTime); 
+            osc.frequency.linearRampToValueAtTime(50, audioCtx.currentTime + 0.3); 
+            gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.3);
+        }
+
+        retryBtn.addEventListener('click', (e) => { e.stopPropagation(); resetGame(); });
+        reviveBtn.addEventListener('click', (e) => { e.stopPropagation(); reviveGame(); });
+
+        function resetGame() {
+            policeOverMusic.pause(); policeOverMusic.currentTime = 0;
+            trapOverMusic.pause(); trapOverMusic.currentTime = 0;
+            
+            cancelAnimationFrame(animationFrameId);
+            isGameOver = false;
+            gameActive = false;
+            money = 0;
+            peopleCount = 0;
+            totalBribes = 0;
+            frames = 0;
+            gameSpeed = 3.0;
+            spawnDistance = 450;
+            gapSize = 250;
+            trapChance = 0.3;
+            spawnTimer = 0;
+            crashedObject = null;
+            scoreEl.innerText = convertToBangla(0);
+            victimsEl.innerText = convertToBangla(0);
+            resetPlayerPosition();
+            obstacles.forEach(ob => ob.el.remove());
+            obstacles = [];
+            gameOverModal.style.display = 'none';
+            tempMsg.style.display = 'none';
+            startMsg.style.display = 'block';
+            
+            bgMusic.play().catch(()=>{});
+        }
+
+        function reviveGame() {
+            if (money < REVIVE_COST) return;
+            money -= REVIVE_COST;
+            totalBribes += REVIVE_COST;
+            scoreEl.innerText = convertToBangla(money);
+            
+            policeOverMusic.pause(); policeOverMusic.currentTime = 0;
+            trapOverMusic.pause(); trapOverMusic.currentTime = 0;
+            
+            if (crashedObject) {
+                crashedObject.el.remove();
+                const idx = obstacles.indexOf(crashedObject);
+                if (idx > -1) obstacles.splice(idx, 1);
+                crashedObject = null;
+            }
+            isGameOver = false;
+            gameActive = true;
+            gameOverModal.style.display = 'none';
+            player.querySelector('.player-img').style.transform = "rotate(0deg)";
+            velocity = lift / 1.5; 
+            
+            bgMusic.play().catch(()=>{});
+            gameLoop();
+        }
+
+        function resetPlayerPosition() {
+            playerY = gameWrapper.clientHeight / 2;
+            velocity = 0;
+            player.style.top = playerY + 'px';
+            player.querySelector('.player-img').style.transform = "rotate(0deg)";
+        }
+
+        function handleInput(e) {
+            if(isGameOver || welcomeScreen.style.display !== 'none') return; // ওয়েলকাম স্ক্রিনে থাকলে ইনপুট নিবে না
+            
+            if (e.type === 'touchstart') e.preventDefault();
+            if (e.type === 'keydown' && e.code !== 'Space') return;
+
+            if (!gameActive) {
+                gameActive = true;
+                startMsg.style.display = 'none';
+                gameLoop();
+                return;
+            }
+            playTapSound();
+            velocity = lift;
+            player.querySelector('.player-img').style.transform = "rotate(-25deg)";
+        }
+
+        window.addEventListener('mousedown', handleInput);
+        window.addEventListener('touchstart', handleInput, {passive: false});
+        window.addEventListener('keydown', handleInput);
+
+        function spawnGameObjects() {
+            const containerH = gameWrapper.clientHeight;
+            const x = gameWrapper.clientWidth;
+            const minWall = 50; 
+            const bottomBuffer = 120;
+            const maxTop = containerH - gapSize - bottomBuffer;
+            const topHeight = Math.floor(Math.random() * (maxTop - minWall + 1)) + minWall;
+
+            const topEl = document.createElement('div');
+            topEl.className = 'wall wall-top';
+            topEl.style.height = topHeight + 'px';
+            topEl.style.top = '0px';
+            topEl.innerHTML = '<div class="wall-cap">👮‍♂️</div>';
+            gameWrapper.appendChild(topEl);
+            obstacles.push({ el: topEl, x: x, type: 'wall' });
+
+            const botEl = document.createElement('div');
+            botEl.className = 'wall wall-bottom';
+            botEl.style.height = (containerH - topHeight - gapSize) + 'px';
+            botEl.style.bottom = '0px';
+            botEl.innerHTML = '<div class="wall-cap">👮‍♂️</div>';
+            gameWrapper.appendChild(botEl);
+            obstacles.push({ el: botEl, x: x, type: 'wall' });
+
+            const itemX = x + (spawnDistance / 2);
+            const centerGapY = topHeight + (gapSize / 2);
+            const randomOffset = (Math.random() * 100) - 50; 
+            const itemY = centerGapY + randomOffset;
+            const itemEl = document.createElement('div');
+            itemEl.className = 'game-item';
+            
+            const isTrap = Math.random() < trapChance;
+            let itemData = { el: itemEl, x: itemX };
+
+            if (isTrap) {
+                itemEl.innerHTML = `
+                    <div class="trap-visual">⚖️</div>
+                    <div class="trap-label-box">
+                        <span>বয়কট চাঁদাবাজ</span>
+                        <span style="font-size: 7px;">🟥</span>
+                    </div>`;
+                itemData.type = 'trap';
+            } else {
+                const data = items[Math.floor(Math.random() * items.length)];
+                if (data.type === 'stand') {
+                    itemEl.innerHTML = `<div class="stand-visual"><div class="stand-roof"></div><span class="icon-large">${data.icon}</span><span class="label-tag">${data.name}</span></div>`;
+                } else {
+                    itemEl.innerHTML = `<div class="person-visual"><span class="icon-large">${data.icon}</span><span class="label-tag">${data.name}</span></div>`;
+                }
+                itemData.type = 'collectible';
+                itemData.val = data.val;
+            }
+            itemEl.style.top = itemY + 'px';
+            gameWrapper.appendChild(itemEl);
+            obstacles.push(itemData);
+        }
+
+        function gameLoop() {
+            if (!gameActive) return;
+
+            velocity += gravity;
+            playerY += velocity;
+            player.style.top = playerY + 'px';
+            player.querySelector('.player-img').style.transform = `rotate(${Math.min(Math.max(velocity*3, -25), 45)}deg)`;
+
+            if (playerY > gameWrapper.clientHeight - 50 || playerY < -30) {
+                initiateCrashSequence('trap'); 
+                return;
+            }
+
+            if (frames > 0 && frames % 500 === 0) {
+                if (gameSpeed < 6.0) gameSpeed += 0.2;
+                if (gapSize > 180) gapSize -= 5;
+                if (trapChance < 0.6) trapChance += 0.05;
+                if (spawnDistance > 400) spawnDistance -= 10;
+            }
+
+            spawnTimer += gameSpeed;
+            if (spawnTimer >= spawnDistance) {
+                spawnGameObjects();
+                spawnTimer = 0;
+            }
+            frames++;
+            const pRect = player.getBoundingClientRect();
+
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                let ob = obstacles[i];
+                ob.x -= gameSpeed;
+                ob.el.style.left = ob.x + 'px';
+
+                if (ob.x < -150) {
+                    ob.el.remove();
+                    obstacles.splice(i, 1);
+                    continue;
+                }
+
+                let oRect;
+                if (ob.type === 'trap') {
+                    const visual = ob.el.querySelector('.trap-visual');
+                    if(visual) oRect = visual.getBoundingClientRect();
+                    else oRect = ob.el.getBoundingClientRect();
+                    const hitboxPadding = 5; 
+                    oRect = {
+                        left: oRect.left + hitboxPadding,
+                        right: oRect.right - hitboxPadding,
+                        top: oRect.top + hitboxPadding,
+                        bottom: oRect.bottom - hitboxPadding
+                    };
+                } else {
+                    oRect = ob.el.getBoundingClientRect();
+                }
+
+                const buffer = 10; 
+
+                if (
+                    pRect.right - buffer > oRect.left &&
+                    pRect.left + buffer < oRect.right &&
+                    pRect.bottom - buffer > oRect.top &&
+                    pRect.top + buffer < oRect.bottom
+                ) {
+                    if (ob.type === 'wall') {
+                        crashedObject = ob;
+                        initiateCrashSequence('police');
+                        return;
+                    } else if (ob.type === 'trap') {
+                        initiateCrashSequence('trap');
+                        return;
+                    } else if (ob.type === 'collectible') {
+                        collect(ob, i);
+                    }
+                }
+            }
+            animationFrameId = requestAnimationFrame(gameLoop);
+        }
+
+        function collect(ob, index) {
+            collectSound.currentTime = 0;
+            collectSound.play().catch(()=>{});
+            
+            money += parseInt(ob.val);
+            peopleCount++;
+            scoreEl.innerText = convertToBangla(money);
+            victimsEl.innerText = convertToBangla(peopleCount);
+
+            createFloatText("+" + convertToBangla(ob.val), ob.el, 'pop-money');
+            createFloatText("চাঁদা দে!", player, 'pop-dialog');
+
+            ob.el.remove();
+            obstacles.splice(index, 1);
+        }
+
+        function createFloatText(text, targetEl, cssClass) {
+            const pop = document.createElement('div');
+            pop.className = 'pop ' + cssClass;
+            pop.innerText = text;
+            const r = targetEl.getBoundingClientRect();
+            const wrapperRect = gameWrapper.getBoundingClientRect();
+            pop.style.left = (r.left - wrapperRect.left + (r.width / 2) - 20) + 'px'; 
+            pop.style.top = (r.top - wrapperRect.top - 40) + 'px';
+            gameWrapper.appendChild(pop);
+            setTimeout(() => pop.remove(), 800);
+        }
+
+        function initiateCrashSequence(reason) {
+            if (isGameOver) return;
+            isGameOver = true;
+            gameActive = false;
+            cancelAnimationFrame(animationFrameId);
+
+            bgMusic.pause();
+            bgMusic.currentTime = 0;
+
+            playDangerSound(); 
+            crashSound.currentTime = 0;
+            crashSound.play().catch(()=>{});
+
+            tempMsg.style.display = 'block';
+
+            setTimeout(() => {
+                tempMsg.style.display = 'none';
+                showFinalGameOver(reason);
+            }, 3000);
+        }
+
+        function showFinalGameOver(reason) {
+            document.getElementById('final-money').innerText = convertToBangla(money) + ' টাকা';
+            document.getElementById('final-victims').innerText = convertToBangla(peopleCount) + ' জন';
+            document.getElementById('final-bribes').innerText = convertToBangla(totalBribes) + ' টাকা';
+
+            const reviveInfoEl = document.getElementById('revive-info');
+            reviveInfoEl.innerText = `(${convertToBangla(REVIVE_COST)})`;
+
+            if (reason === 'police') {
+                policeOverMusic.currentTime = 0;
+                policeOverMusic.play().catch(()=>{});
+
+                modalHeadline.style.display = 'block';
+                modalIcon.innerText = "🚓🛑";
+                modalText.innerText = "পুলিশ ধরেছে! ঘুষ দিয়ে আবার চাঁদাবাজি করুন";
+                
+                trapMemeImg.style.display = 'none';
+
+                if (money >= REVIVE_COST) reviveBtn.style.display = 'flex';
+                else reviveBtn.style.display = 'none';
+            } else {
+                trapOverMusic.currentTime = 0;
+                trapOverMusic.play().catch(()=>{});
+
+                modalHeadline.style.display = 'none';
+                modalIcon.innerText = "⚖️";
+                modalText.innerText = "দাঁড়িপাল্লাতে চাঁদাবাজদের কোন ঠাঁই নেই। ভিক্ষা লাগলে ভিক্ষা নে চাঁদাবাজি ছেড়ে দে 😁";
+                
+                trapMemeImg.style.display = 'block';
+                reviveBtn.style.display = 'none';
+            }
+            gameOverModal.style.display = 'flex';
+        }
+
+        function shareGame() {
+            const t = `ত্রাস রানার গেমে ${money} টাকা তুলেছি!`;
+            if(navigator.share) navigator.share({text:t, url:window.location.href});
+            else { navigator.clipboard.writeText(t); alert('কপি হয়েছে!'); }
+        }
+
+        function convertToBangla(num) {
+            const bd = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+            return num.toString().split('').map(d => bd[d]).join('');
+        }
+    </script> 
+ </body>
+</html>
